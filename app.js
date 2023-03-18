@@ -1,92 +1,179 @@
-
-let math = document.querySelector('.math');
-let answer = document.querySelector('.answer');
-
-let topScreen = [];
 let operator = '';
-let numOne = [];
-let numTwo = [];
+let currentVal = '';
+let previousVal = '';
 
-document.querySelector(".add").addEventListener('click', () => {
-    operator = 'add';
-});
-document.querySelector(".subtract").addEventListener('click', () => operator = 'subtract');
-document.querySelector(".multiply").addEventListener('click', () => operator = 'multiply');
-document.querySelector(".divide").addEventListener('click', () => operator = 'divide');
-document.querySelector('.equals').addEventListener('click', () => operate());
+let numbers = document.querySelectorAll('.number');
+let operators = document.querySelectorAll('.operator');
 
-const operate = function () {
-    let numTwoHolder = 0;
-    numTwoHolder = Number(numTwo.join(''));
+let equal = document.querySelector('.equals');
+let clear = document.querySelector('.clear');
+let decimal = document.querySelector('.decimal');
+let back = document.querySelector('.back');
 
-    if (operator == 'add'){
-        operator = '';
-        return updateAnswer(addNum(numOne , numTwoHolder));
-    } else if (operator == 'subtract'){
-        operator = '';
-        return updateAnswer(subtractNum(numOne , numTwoHolder));
-    } else if (operator == 'multiply'){
-        operator = '';
-        return updateAnswer(multiplyNum(numOne , numTwoHolder));
-    } else {
-        operator = '';
-        return updateAnswer(divideNum(numOne , numTwoHolder));
+let currentScreen = document.querySelector('.currentScreen');
+let previousScreen = document.querySelector('.previousScreen');
+
+//listens for any keypress on the keyboard. calls HandlekeyPress if one is pushed.
+window.addEventListener("keydown", handleKeyPress);
+
+
+
+//adds click event that updates text of the top screen to currentVal
+numbers.forEach((number) => number.addEventListener('click', function(e){
+    if (previousVal == "Error, can't / by 0"){
+        previousVal = '';
     }
-}
+    handleNumber(e.target.textContent);
+    currentScreen.textContent = currentVal;
+}))
 
+operators.forEach((op) => op.addEventListener('click', function(e) {
+    handleOperator(e.target.textContent);
+    previousScreen.textContent = previousVal + " " + operator;
+    currentScreen.textContent = currentVal;
+}))
 
-const addNum = function (a , b) {
-    return a + b;
-}
-
-const subtractNum = function (a , b) {
-    return a - b;
-}
-
-const multiplyNum = function (a , b) {
-    return a * b;
-}
-
-const divideNum = function (a , b) {
-    return a / b;
-}
-
-const updateNums = function(num) {
-    if (num === '+' || num === '-' || num === 'x' || num === '/' && numOne != []){
-        numOne = Number(topScreen.join(''));
-    }else if (operator != '') {
-        numTwo.push(num);
-    }
-}
-
-//check if operator has anything in it. If so calls operate() like the user pressed =
-// const longMath = function(num) {
-//     if(operator != '' && numOne != [] && numTwo != [] && num === '-' || num === '+' || num === '/' || num === 'x'){
-//         operate();
-//     }
-// 
-
-const updateScreen = function(num) {
-    if (answer.textContent != ''){
-        clearScreen();
-    }
-    updateNums(num);
-
-    topScreen.push(num);
-    math.textContent = topScreen.join('');
-}
-
-//sets the bottom screen = to the answer
-const updateAnswer = function (num){
-    answer.textContent = num;
-}
-
-//Clears both screens and numbers aswell as the operator
-const clearScreen = function () {
-    topScreen = [];
+//clears the screen and resets variables.
+clear.addEventListener('click', function(){
+    currentVal = '';
+    previousVal = '';
+    currentScreen.textContent = '0';
+    previousScreen.textContent = '';
     operator = '';
-    numOne = [];
-    numTwo = [];
-    math.textContent = topScreen;
-    answer.textContent = ''
+})
+
+decimal.addEventListener('click', function(){
+    addDecimal();
+})
+
+//checks if the values are empty. If not runs Caculate() and displays answer.
+equal.addEventListener('click', function() {
+    if(currentVal != '' && previousVal != ''){
+        caculate();
+        previousScreen.textContent = '';
+        currentScreen.textContent = previousVal;
+    }
+})
+
+back.addEventListener('click', function (){
+    handleDelete();
+})
+
+//makes sure the number isn't too long and sets currentVal = to num
+function handleNumber(num) {
+    if (previousVal !== "" && currentVal !== "" && operator === "") {
+        previousVal = "";
+        currentScreen.textContent = currentVal;
+    }
+    if (currentVal.length <= 11) {
+        currentVal += num;
+        currentScreen.textContent = currentVal;
+    }
+}
+
+function handleOperator(op){
+    if (previousVal === "") {
+        previousVal = currentVal;
+        operatorCheck(op);
+    } else if (currentVal === "") {
+        operatorCheck(op);
+    } else {
+        caculate();
+        operator = op;
+        currentScreen.textContent = "0";
+        previousScreen.textContent = previousVal + " " + operator;
+    }
+}
+
+//converts Val's to numbers and does math based on operator.
+function caculate(){
+    previousVal = Number(previousVal);
+    currentVal = Number(currentVal);
+
+    if(operator === '+'){
+        previousVal += currentVal;
+    }else if(operator === '-'){
+        previousVal -= currentVal;
+    }else if(operator === 'x'){
+        previousVal *= currentVal;
+    }else{
+        if(currentVal <= 0){
+            previousVal = "Error, can't / by 0"
+            displayResults();
+            return
+        }
+        previousVal /= currentVal;
+    }
+    previousVal = roundNum(previousVal);
+    previousVal = previousVal.toString();
+    displayResults();
+}
+
+//checks if the caculation would be too long. Adds ... if it is > 11
+function displayResults() {
+    if (previousVal.length <= 11) {
+        currentScreen.textContent = previousVal;
+    } else {
+        currentScreen.textContent = previousVal.slice(0, 11) + "...";
+    }
+    previousScreen.textContent = "";
+    operator = "";
+    currentVal = "";
+}
+
+function roundNum(num) {
+    return Math.round(num * 1000) / 1000;
+}
+
+function addDecimal () {
+    if (!currentVal.includes('.')){
+        currentVal += '.';
+    }
+}
+
+function operatorCheck(text) {
+    operator = text;
+    previousScreen.textContent = previousVal + " " + operator;
+    currentScreen.textContent = "0";
+    currentVal = "";
+}
+
+function handleKeyPress(e) {
+    e.preventDefault();
+    if (e.key >= 0 && e.key <= 9) {
+        console.log(e.key);
+        handleNumber(e.key);
+    }
+    if (
+        e.key === "Enter" ||
+        (e.key === "=" && currentVal != "" && previousVal != "")
+    ) {
+        caculate();
+    }
+    if (e.key === "+" || e.key === "-" || e.key === "/") {
+        handleOperator(e.key);
+    }
+    if (e.key === "*") {
+        handleOperator("x");
+    }
+    if (e.key === ".") {
+        addDecimal();
+    }
+    if (e.key === "Backspace") {
+        handleDelete();
+    }
+}
+  
+  function handleDelete() {
+    if (currentVal !== "") {
+        currentVal = currentVal.slice(0, -1);
+        currentScreen.textContent = currentVal;
+        if (currentVal === "") {
+            currentScreen.textContent = "0";
+        }
+    }
+    if (currentVal === "" && previousVal !== "" && operator === "") {
+        previousVal = previousVal.slice(0, -1);
+        currentScreen.textContent = previousVal;
+    }
 }
