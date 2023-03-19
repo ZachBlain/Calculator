@@ -49,7 +49,7 @@ decimal.addEventListener('click', function(){
 //checks if the values are empty. If not runs Caculate() and displays answer.
 equal.addEventListener('click', function() {
     if(currentVal != '' && previousVal != ''){
-        caculate();
+        calculate();
         previousScreen.textContent = '';
         currentScreen.textContent = previousVal;
     }
@@ -78,7 +78,7 @@ function handleOperator(op){
     } else if (currentVal === "") {
         operatorCheck(op);
     } else {
-        caculate();
+        calculate();
         operator = op;
         currentScreen.textContent = "0";
         previousScreen.textContent = previousVal + " " + operator;
@@ -86,7 +86,7 @@ function handleOperator(op){
 }
 
 //converts Val's to numbers and does math based on operator.
-function caculate(){
+function calculate(){
     previousVal = Number(previousVal);
     currentVal = Number(currentVal);
 
@@ -138,6 +138,7 @@ function operatorCheck(text) {
     currentVal = "";
 }
 
+//keyboard support for the calculator
 function handleKeyPress(e) {
     e.preventDefault();
     if (e.key >= 0 && e.key <= 9) {
@@ -148,7 +149,7 @@ function handleKeyPress(e) {
         e.key === "Enter" ||
         (e.key === "=" && currentVal != "" && previousVal != "")
     ) {
-        caculate();
+        calculate();
     }
     if (e.key === "+" || e.key === "-" || e.key === "/") {
         handleOperator(e.key);
@@ -163,8 +164,9 @@ function handleKeyPress(e) {
         handleDelete();
     }
 }
-  
-  function handleDelete() {
+
+//deletes one number
+function handleDelete() {
     if (currentVal !== "") {
         currentVal = currentVal.slice(0, -1);
         currentScreen.textContent = currentVal;
